@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="10dp"
+    tools:context="cn.atuan.calendar.MainActivity">
+
+    <TextView
+        android:id="@+id/btn_customDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:background="@color/title_bg"
+        android:gravity="center"
+        android:padding="10dp"
+        android:text="自定义选择日期"
+        android:textColor="@color/white" />
+
+    <TextView
+        android:id="@+id/btn_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:background="@color/title_bg"
+        android:gravity="center"
+        android:padding="10dp"
+        android:text="选择日期"
+        android:textColor="@color/white" />
+
+    <TextView
+        android:id="@+id/btn_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/title_bg"
+        android:gravity="center"
+        android:padding="10dp"
+        android:text="选择时间"
+        android:textColor="@color/white" />
+
+    <TextView
+        android:id="@+id/result"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_marginTop="20dp"
+        android:textSize="16sp" />
+
+</LinearLayout>
