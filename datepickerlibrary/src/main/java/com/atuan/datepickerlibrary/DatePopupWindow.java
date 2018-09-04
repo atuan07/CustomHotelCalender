@@ -482,7 +482,7 @@ public class DatePopupWindow extends PopupWindow {
                             startChildPosition = position;
                             String mStartTime = CalendarUtil.FormatDateMD(item.getList().get(position).getDate());
                             tvStartDate.setText(mStartTime);
-                            tvStartWeek.setText("周" + item.getList().get(position).getDate());
+                            tvStartWeek.setText("周" + CalendarUtil.getWeekByFormat(item.getList().get(position).getDate()));
                             adapter.notifyItemChanged(position);
                             tvTime.setText("请选择结束时间");
                             tvOk.setText("请选择结束时间");//?
