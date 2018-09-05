@@ -103,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
         new DatePopupWindow
                 .Builder(MainActivity.this, Calendar.getInstance().getTime(), view)
                 .setInitSelect(startGroup, startChild, endGroup, endChild)
+                .setInitDay(false)
                 .setDateOnClickListener(new DatePopupWindow.DateOnClickListener() {
                     @Override
                     public void getDate(String startDate, String endDate, int startGroupPosition, int startChildPosition, int endGroupPosition, int endChildPosition) {

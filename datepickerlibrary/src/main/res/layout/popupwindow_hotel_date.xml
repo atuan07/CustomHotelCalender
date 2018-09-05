@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -50,6 +48,7 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/tv_startDateDesc"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="开始日期"
@@ -92,6 +91,7 @@
                 android:visibility="visible">
 
                 <TextView
+                    android:id="@+id/tv_endDateDesc"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="结束日期"
@@ -194,11 +194,11 @@
             android:layout_height="1px"
             android:background="#d2d1d1" />
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/rv"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="55dp" />
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="55dp" />
     </LinearLayout>
 
     <LinearLayout
@@ -207,7 +207,6 @@
         android:layout_alignParentBottom="true"
         android:background="@color/white"
         android:orientation="vertical">
-
 
         <TextView
             android:id="@+id/tv_ok"

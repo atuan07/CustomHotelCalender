@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.BitmapDrawable;
 import android.support.annotation.Nullable;
-import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -46,9 +45,12 @@ public class DatePopupWindow extends PopupWindow {
     private TextView tvHintText;
     private TextView btnClose;
     private TextView btnClear;
+    private boolean dayFalg;
     private Activity activity;
     private Date mSetDate;
     private String currentDate;
+    private String startDesc;
+    private String endDesc;
     private int startGroupPosition = -1;
     private int endGroupPosition = -1;
     private int startChildPosition = -1;
@@ -63,6 +65,9 @@ public class DatePopupWindow extends PopupWindow {
 
         this.activity = builder.context;
         this.currentDate = builder.date;
+        this.startDesc = builder.startDesc;
+        this.endDesc = builder.endDesc;
+        this.dayFalg = builder.dayFalg;
         this.startGroupPosition = builder.startGroupPosition;
         this.startChildPosition = builder.startChildPosition;
         this.endGroupPosition = builder.endGroupPosition;
@@ -103,6 +108,10 @@ public class DatePopupWindow extends PopupWindow {
         llEnd = (LinearLayout) rootView.findViewById(R.id.ll_end);
         tvHintText = (TextView) rootView.findViewById(R.id.tv_hintText);
         rv = (RecyclerView) rootView.findViewById(R.id.rv);
+        TextView tvStartDateDesc = (TextView) rootView.findViewById(R.id.tv_startDateDesc);
+        TextView tvEndDateDesc = (TextView) rootView.findViewById(R.id.tv_endDateDesc);
+        tvStartDateDesc.setText(startDesc + "日期");
+        tvEndDateDesc.setText(endDesc + "日期");
         tvOk.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -135,13 +144,15 @@ public class DatePopupWindow extends PopupWindow {
             }
         });
 
-        ((DefaultItemAnimator) rv.getItemAnimator()).setSupportsChangeAnimations(false);//关闭动画
         LinearLayoutManager manager = new LinearLayoutManager(activity);
         manager.setOrientation(LinearLayoutManager.VERTICAL);
         rv.setLayoutManager(manager);
         mList = new ArrayList<>();
         mDateAdapter = new DateAdapter(mList);
         rv.setAdapter(mDateAdapter);
+        rv.setItemViewCacheSize(200);
+        rv.setHasFixedSize(true);
+        rv.setNestedScrollingEnabled(false);
         initData();
     }
 
@@ -200,7 +211,7 @@ public class DatePopupWindow extends PopupWindow {
         info.setList(dayList);
         mList.add(info);
         //获取下7个月的数据
-        for (int i = 1; i < 8; i++) {
+        for (int i = 1; i < 5; i++) {
             //当前月份循环加1
             c.add(Calendar.MONTH, 01);
             DateInfo nextInfo = new DateInfo();
@@ -313,8 +324,11 @@ public class DatePopupWindow extends PopupWindow {
         tvEndWeek.setText("周" + CalendarUtil.getWeekByFormat(endDate));
         int daysOffset = Integer.parseInt(CalendarUtil.getTwoDay(endDate, startDate));
         if (daysOffset < 0) return;
-        tvTime.setText("共" + (daysOffset + 1) + "天");
-
+        if (dayFalg) {
+            tvTime.setText("共" + (daysOffset + 1) + "天");
+        } else {
+            tvTime.setText("共" + daysOffset + "晚");
+        }
         //更改结束日期和完成按钮状态
         llEnd.setVisibility(View.VISIBLE);
         tvHintText.setVisibility(View.GONE);
@@ -391,6 +405,9 @@ public class DatePopupWindow extends PopupWindow {
         private String date;
         private Activity context;
         private View parentView;
+        private String startDesc;
+        private String endDesc;
+        private boolean dayFalg = true;
         private int startGroupPosition = -1;
         private int endGroupPosition = -1;
         private int startChildPosition = -1;
@@ -402,6 +419,9 @@ public class DatePopupWindow extends PopupWindow {
             this.date = new SimpleDateFormat("yyyy-MM-dd").format(date);
             this.context = context;
             this.parentView = parentView;
+            this.startDesc = "开始";
+            this.endDesc = "结束";
+            this.dayFalg = true;
         }
 
         public DatePopupWindow builder() {
@@ -413,6 +433,18 @@ public class DatePopupWindow extends PopupWindow {
             this.startChildPosition = startChild;
             this.endGroupPosition = endGroup;
             this.endChildPosition = endChild;
+            return this;
+        }
+
+        public Builder setInitDay(boolean dayFalg) {
+            this.dayFalg = dayFalg;
+            if (dayFalg) {
+                this.startDesc = "开始";
+                this.endDesc = "结束";
+            } else {
+                this.startDesc = "入住";
+                this.endDesc = "离开";
+            }
             return this;
         }
 
@@ -443,6 +475,9 @@ public class DatePopupWindow extends PopupWindow {
             rv.setLayoutManager(manager);
             final TempAdapter groupAdapter = new TempAdapter(item.getList());
             rv.setAdapter(groupAdapter);
+            rv.setItemViewCacheSize(200);
+            rv.setHasFixedSize(true);
+            rv.setNestedScrollingEnabled(false);
             groupAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
                 @Override
                 public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
@@ -450,20 +485,25 @@ public class DatePopupWindow extends PopupWindow {
                     if (TextUtils.isEmpty(item.getList().get(position).getName())) return;
                     if (TextUtils.isEmpty(item.getList().get(position).getDate())) return;
                     int status = item.getList().get(position).getStatus();
-                    if (status == 0 && startGroupPosition == -1 && startChildPosition == -1 && item.getList().get(position).isEnable()) {
+                    if (status == 0 &&
+                            startGroupPosition == -1 &&
+                            startChildPosition == -1 &&
+                            item.getList().get(position).isEnable()) {
                         //开始
                         item.getList().get(position).setStatus(1);
                         adapter.notifyItemChanged(position);
                         startGroupPosition = helper.getAdapterPosition();
                         startChildPosition = position;
-                        String mStartTime = CalendarUtil.FormatDateMD(item.getList().get(position).getDate());
-                        tvStartDate.setText(mStartTime);
+
+                        tvStartDate.setText(CalendarUtil.FormatDateMD(item.getList().get(position).getDate()));
                         tvStartWeek.setText("周" + CalendarUtil.getWeekByFormat(item.getList().get(position).getDate()));
-                        tvTime.setText("请选择结束时间");
-                        tvOk.setText("请选择结束时间");
+                        tvTime.setText("请选择" + endDesc + "时间");
+
                         tvOk.setEnabled(false);
+                        tvOk.setText("请选择" + endDesc + "时间");
                         tvOk.setBackgroundResource(R.drawable.img_btn_bg_n);
                         llEnd.setVisibility(View.GONE);
+                        tvHintText.setText(endDesc + "日期");
                         tvHintText.setVisibility(View.VISIBLE);
                         return;
                     }
@@ -484,11 +524,12 @@ public class DatePopupWindow extends PopupWindow {
                             tvStartDate.setText(mStartTime);
                             tvStartWeek.setText("周" + CalendarUtil.getWeekByFormat(item.getList().get(position).getDate()));
                             adapter.notifyItemChanged(position);
-                            tvTime.setText("请选择结束时间");
-                            tvOk.setText("请选择结束时间");//?
+                            tvTime.setText("请选择" + endDesc + "时间");
+                            tvOk.setText("请选择" + endDesc + "时间");//?
                             tvOk.setEnabled(false);
                             tvOk.setBackgroundResource(R.drawable.img_btn_bg_n);
                             llEnd.setVisibility(View.GONE);
+                            tvHintText.setText(endDesc + "日期");
                             tvHintText.setVisibility(View.VISIBLE);
                             return;
                         }
@@ -499,6 +540,7 @@ public class DatePopupWindow extends PopupWindow {
                         endChildPosition = position;
                         getoffsetDate(mList.get(startGroupPosition).getList().get(startChildPosition).getDate(),
                                 mList.get(endGroupPosition).getList().get(endChildPosition).getDate(), true);
+
                         return;
                     }
                     //重置开始和结束时间，设置开始时间
@@ -511,7 +553,7 @@ public class DatePopupWindow extends PopupWindow {
                         //重置选择间区的状态
                         getoffsetDate(mList.get(startGroupPosition).getList().get(startChildPosition).getDate(),
                                 mList.get(endGroupPosition).getList().get(endChildPosition).getDate(), false);
-                        //设置入开始
+                        //设置开始
                         item.getList().get(position).setStatus(1);
                         adapter.notifyItemChanged(position);
                         String mStartTime = CalendarUtil.FormatDateMD(item.getList().get(position).getDate());
@@ -522,17 +564,17 @@ public class DatePopupWindow extends PopupWindow {
                         startChildPosition = position;
                         endGroupPosition = -1;
                         endChildPosition = -1;
-                        tvTime.setText("请选择结束时间");
-                        tvOk.setText("请选择结束时间");
+                        tvTime.setText("请选择" + endDesc + "时间");
+                        tvOk.setText("请选择" + endDesc + "时间");
                         tvOk.setEnabled(false);
                         tvOk.setBackgroundResource(R.drawable.img_btn_bg_n);
                         llEnd.setVisibility(View.GONE);
+                        tvHintText.setText(endDesc + "日期");
                         tvHintText.setVisibility(View.VISIBLE);
                         return;
                     }
                 }
             });
-
         }
 
         public void updateData() {
@@ -547,12 +589,14 @@ public class DatePopupWindow extends PopupWindow {
 
         @Override
         protected void convert(BaseViewHolder helper, DayInfo item) {
-            helper.setText(R.id.tv_date, item.getName());
-            helper.setText(R.id.tv_dateDel, item.getName());
-
+            String  name = item.getName();
+            boolean  isSelect = item.isSelect();
+            boolean  isEnable = item.isEnable();
+            int  status = item.getStatus();
+            helper.setText(R.id.tv_date, name);
             //默认
-            if (item.getStatus() == 0) {
-                if (item.isSelect()) {
+            if (status == 0) {
+                if (isSelect) {
                     //选中
                     helper.getView(R.id.tv_date).setVisibility(View.VISIBLE);
                     helper.getView(R.id.tv_status).setVisibility(View.GONE);
@@ -567,20 +611,19 @@ public class DatePopupWindow extends PopupWindow {
                     ((TextView) helper.getView(R.id.tv_date)).setTextColor(activity.getResources().getColor(R.color.black));
                     (helper.getView(R.id.ll_bg)).setBackgroundColor(activity.getResources().getColor(R.color.white));
                 }
-
-            } else if (item.getStatus() == 1) {
+            } else if (status == 1) {
                 //开始
                 helper.getView(R.id.tv_date).setVisibility(View.VISIBLE);
-                helper.setText(R.id.tv_status, "开始");
+                helper.setText(R.id.tv_status, startDesc);
                 helper.getView(R.id.tv_status).setVisibility(View.VISIBLE);
                 helper.getView(R.id.tv_dateDel).setVisibility(View.GONE);
                 ((TextView) helper.getView(R.id.tv_status)).setTextColor(activity.getResources().getColor(R.color.white));
                 ((TextView) helper.getView(R.id.tv_date)).setTextColor(activity.getResources().getColor(R.color.white));
                 (helper.getView(R.id.ll_bg)).setBackgroundColor(activity.getResources().getColor(R.color.title_bg));
-            } else if (item.getStatus() == 2) {
+            } else if (status == 2) {
                 //结束
                 helper.getView(R.id.tv_date).setVisibility(View.VISIBLE);
-                helper.setText(R.id.tv_status, "结束");
+                helper.setText(R.id.tv_status, endDesc);
                 helper.getView(R.id.tv_status).setVisibility(View.VISIBLE);
                 helper.getView(R.id.tv_dateDel).setVisibility(View.GONE);
                 ((TextView) helper.getView(R.id.tv_status)).setTextColor(activity.getResources().getColor(R.color.white));
@@ -588,19 +631,19 @@ public class DatePopupWindow extends PopupWindow {
                 (helper.getView(R.id.ll_bg)).setBackgroundColor(activity.getResources().getColor(R.color.title_bg));
             }
             //设置当前日期前的样式，没选中，并状态为0情况下
-            if (!item.isSelect() && item.getStatus() == 0) {
-                if (!item.isEnable()) {
+            if (!isSelect && status == 0) {
+                if (!isEnable) {
                     //无效
                     TextView textView = helper.getView(R.id.tv_dateDel);
-                    if (TextUtils.isEmpty(textView.getText().toString().trim())) {
+                    if (TextUtils.isEmpty(name)) {
                         textView.setVisibility(View.GONE);
                     } else {
+                        textView.setText(name);
                         textView.setVisibility(View.VISIBLE);
                     }
                     textView.setTextColor(activity.getResources().getColor(R.color.text_enable));
                     helper.getView(R.id.tv_date).setVisibility(View.GONE);
                     helper.getView(R.id.tv_status).setVisibility(View.GONE);
-
                 } else {
                     helper.getView(R.id.tv_date).setVisibility(View.VISIBLE);
                     helper.getView(R.id.tv_status).setVisibility(View.GONE);
